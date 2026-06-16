@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Budget Goals - Student Finance Tracker{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-calculator"></i> Budget Goals</h5>
+        <a href="{{ url_for('main.add_budget') }}" class="btn btn-sm btn-light">
+            <i class="fas fa-plus"></i> Set Budget
+        </a>
+    </div>
+    <div class="card-body">
+        {% if budget_data %}
+        <div class="row">
+            {% for item in budget_data %}
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title">{{ item.budget.category.category_name }}</h6>
+                            <form method="POST" action="{{ url_for('main.delete_budget', budget_id=item.budget.id) }}" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete budget goal?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <p class="mb-2">
+                            <strong>${{ "%.2f"|format(item.spent) }}</strong> of <strong>${{ "%.2f"|format(item.budget.monthly_limit) }}</strong> spent
+                        </p>
+                        
+                        <div class="progress mb-2" style="height: 25px;">
+                            <div class="progress-bar {% if item.percentage >= 100 %}bg-danger{% elif item.percentage >= 80 %}bg-warning{% else %}bg-success{% endif %}" 
+                                 style="width: {{ item.percentage if item.percentage <= 100 else 100 }}%;">
+                                {{ "%.0f"|format(item.percentage) }}%
+                            </div>
+                        </div>
+                        
+                        <p class="text-muted mb-0">
+                            <small>
+                                {% if item.remaining > 0 %}
+                                    <strong>${{ "%.2f"|format(item.remaining) }}</strong> remaining
+                                {% else %}
+                                    <strong class="text-danger">${{ "%.2f"|format(item.remaining|abs) }}</strong> over budget
+                                {% endif %}
+                            </small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            No budget goals set. <a href="{{ url_for('main.add_budget') }}">Create your first budget goal</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Student Finance Tracker{% endblock %}
+
+{% block content %}
+<div class="row align-items-center" style="min-height: 80vh;">
+    <div class="col-md-6">
+        <h1 class="display-4 fw-bold mb-4">
+            <i class="fas fa-wallet text-primary"></i> Student Finance Tracker
+        </h1>
+        <p class="lead mb-4">
+            Master your money as a college student. Track expenses, manage budgets, save for your goals, and get AI-powered financial advice.
+        </p>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-user-plus"></i> Get Started
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-lg">
+            <div class="card-body p-5">
+                <h5 class="card-title mb-4">Why Use Student Finance Tracker?</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-3">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <strong>Track Income & Expenses</strong> - Monitor every dollar in and out
+                    </li>
+                    <li class="mb-3">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <strong>Smart Budgeting</strong> - Set category limits and stay on track
+                    </li>
+                    <li class="mb-3">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <strong>Savings Goals</strong> - Plan and track purchases on your wishlist
+                    </li>
+                    <li class="mb-3">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <strong>AI Financial Advisor</strong> - Get personalized advice powered by OpenAI
+                    </li>
+                    <li class="mb-3">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <strong>Analytics & Charts</strong> - Visualize spending patterns
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

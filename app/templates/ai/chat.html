@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}AI Assistant - Student Finance Tracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-robot"></i> Financial AI Assistant</h5>
+            </div>
+            <div class="card-body" style="height: 500px; overflow-y: auto; background-color: #f8f9fa;" id="chatBox">
+                <div id="chatMessages"></div>
+            </div>
+            <div class="card-footer">
+                <form id="chatForm" onsubmit="sendMessage(event)">
+                    <div class="input-group">
+                        <textarea class="form-control" id="question" placeholder="Ask me about your finances..." rows="2" required></textarea>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Chat History</h5>
+            </div>
+            <div class="card-body" style="height: 500px; overflow-y: auto;">
+                <div id="historyList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function sendMessage(event) {
+    event.preventDefault();
+    
+    const question = document.getElementById('question').value.trim();
+    if (!question) return;
+
+    const chatBox = document.getElementById('chatMessages');
+    
+    // Add user message
+    const userMessageDiv = document.createElement('div');
+    userMessageDiv.className = 'mb-3 text-end';
+    userMessageDiv.innerHTML = `
+        <div style="background-color: #0d6efd; color: white; padding: 10px 15px; border-radius: 10px; max-width: 80%; margin-left: auto;">
+            ${escapeHtml(question)}
+        </div>
+        <small class="text-muted">Now</small>
+    `;
+    chatBox.appendChild(userMessageDiv);
+    
+    // Clear input
+    document.getElementById('question').value = '';
+    
+    // Show loading
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'mb-3';
+    loadingDiv.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>';
+    chatBox.appendChild(loadingDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    try {
+        const response = await fetch('{{ url_for("ai.get_ai_response") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ question: question })
+        });
+
+        loadingDiv.remove();
+
+        if (!response.ok) {
+            const error = await response.json();
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-danger mb-3';
+            errorDiv.textContent = error.error || 'Error getting response';
+            chatBox.appendChild(errorDiv);
+            return;
+        }
+
+        const data = await response.json();
+        
+        // Add AI message
+        const aiMessageDiv = document.createElement('div');
+        aiMessageDiv.className = 'mb-3';
+        aiMessageDiv.innerHTML = `
+            <div style="background-color: #e9ecef; color: #333; padding: 10px 15px; border-radius: 10px; max-width: 80%;">
+                ${escapeHtml(data.response)}
+            </div>
+            <small class="text-muted">${new Date(data.timestamp).toLocaleTimeString()}</small>
+        `;
+        chatBox.appendChild(aiMessageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        loadChatHistory();
+    } catch (error) {
+        loadingDiv.remove();
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger mb-3';
+        errorDiv.textContent = 'Error: ' + error.message;
+        chatBox.appendChild(errorDiv);
+    }
+}
+
+async function loadChatHistory() {
+    try {
+        const response = await fetch('{{ url_for("ai.get_chat_history") }}');
+        const data = await response.json();
+        
+        const historyList = document.getElementById('historyList');
+        historyList.innerHTML = '';
+        
+        data.forEach(chat => {
+            const item = document.createElement('div');
+            item.className = 'mb-2 p-2 border rounded';
+            item.innerHTML = `
+                <small><strong>${escapeHtml(chat.question.substring(0, 50))}...</strong></small><br>
+                <small class="text-muted">${new Date(chat.timestamp).toLocaleDateString()}</small>
+            `;
+            historyList.appendChild(item);
+        });
+    } catch (error) {
+        console.error('Error loading chat history:', error);
+    }
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+// Load chat history on page load
+loadChatHistory();
+setInterval(loadChatHistory, 30000);
+</script>
+{% endblock %}
