@@ -32,4 +32,7 @@ def create_app(config_class=Config):
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(ai_bp, url_prefix="/ai")
 
+    with app.app_context():
+        db.create_all()
+
     return app
